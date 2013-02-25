@@ -2,10 +2,23 @@
 
 var QUICK = process.argv.indexOf('quick') >= 0
 
-var JSHINT = require('./jshint').JSHINT
+var JSHINT = require('jshint').JSHINT
 var BS = require('./bs').BS
 var TextMate = require('./TextMate')
+var fs = require('fs');
 
+// 去掉代码中的注释与空行
+function removeComments(code) {
+    return code.replace(/^\s*\/\*[\s\S]*?\*\/\s*$/mg, '').replace(/\/\/.*$/mg, '').replace(/^\s*$/mg, ''); // line comments
+}
+
+fs.readFile('/Users/robbenmu/.jshintrc', function(err, data){
+    // data = eval([data][0]);
+    if(err) throw err;
+    
+    data = removeComments(data + '');
+    data = JSON.parse(data);
+    // console.log(JSON.parse(data));
 var FILEPATH = QUICK? process.env.TM_FILEPATH : process.env.TMPDIR + "validate.me.js"
 
 process.stdin.resume()
@@ -18,8 +31,13 @@ process.stdin.on('data', function(chunk){
 })
 
 process.stdin.on('end', function(){
-    if (JSHINT(''+CODE)) QUICK? quickPASS() : PASS()
+    
+    // if (JSHINT(''+CODE)) QUICK? quickPASS() : PASS()
+    // else QUICK? quickFAIL() : FAIL()
+    // console.log(data);
+    if (JSHINT(''+CODE, data)) QUICK? quickPASS() : PASS()
     else QUICK? quickFAIL() : FAIL()
+    
 })
 
 function quickPASS(){
@@ -97,5 +115,6 @@ function reportError(message){
     //     )
     // )
 }
+});
 
 
